@@ -138,7 +138,7 @@ const App = () => {
           {loading && (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <div className="w-12 h-12 border-4 border-cyber-700 border-t-cyber-accent rounded-full animate-spin"></div>
-              <p className="text-gray-400 animate-pulse">Scan des fréquences...</p>
+              <p className="text-gray-400 animate-pulse">Récupération des flux...</p>
             </div>
           )}
 
