@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Article, FilterState, Category, TimeFilter } from './types';
+import { Article, FilterState, Category, TimeFilter, FeedProgress } from './types';
 import { PRESS_FEEDS, ANSSI_FEEDS } from './constants';
 import { fetchAllFeeds } from './utils/feedParser';
 import FilterSidebar from './components/FilterSidebar';
@@ -11,6 +11,7 @@ const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [progress, setProgress] = useState<FeedProgress | null>(null);
 
   const [filters, setFilters] = useState<FilterState>({
     time: '48h',
@@ -25,13 +26,15 @@ const App = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await fetchAllFeeds((articles) => {
-          setArticles(articles);
-        });
+        await fetchAllFeeds(
+          (articles) => setArticles(articles),
+          (prog) => setProgress(prog)
+        );
       } catch (err) {
         setError('Impossible de récupérer les flux. Veuillez réessayer plus tard.');
       } finally {
         setLoading(false);
+        setProgress(null);
       }
     };
     loadData();
@@ -108,8 +111,26 @@ const App = () => {
             <PinkyIcon className="w-5 h-5 text-[#FFB8FF]" />
             {filters.viewMode === 'press' ? 'Pacman Veille' : 'Moniteur ANSSI'}
           </h1>
-          <div className="w-8"></div> 
+          <div className="w-8"></div>
         </div>
+
+        {loading && progress && (
+          <div className="sticky top-0 lg:top-0 z-20 bg-cyber-800/90 backdrop-blur border-b border-cyber-700 px-4 py-2">
+            <div className="max-w-7xl mx-auto flex items-center gap-3">
+              <div className="w-4 h-4 border-2 border-cyber-700 border-t-cyber-accent rounded-full animate-spin flex-shrink-0"></div>
+              <div className="flex-1 flex items-center gap-3">
+                <span className="text-sm text-gray-400 truncate">{progress.feedName}</span>
+                <div className="flex-1 h-1.5 bg-cyber-900 rounded-full overflow-hidden max-w-xs">
+                  <div
+                    className="h-full bg-cyber-accent transition-all duration-300 ease-out"
+                    style={{ width: `${(progress.loaded / progress.total) * 100}%` }}
+                  />
+                </div>
+                <span className="text-sm text-gray-500 flex-shrink-0">{progress.loaded}/{progress.total}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-4 lg:p-8 max-w-7xl mx-auto pb-24">
           <div className="mb-8 hidden lg:block">
@@ -172,14 +193,6 @@ const App = () => {
             </div>
           )}
 
-          {loading && articles.length > 0 && (
-            <div className="flex justify-center py-6">
-              <div className="flex items-center gap-3 text-gray-400">
-                <div className="w-5 h-5 border-2 border-cyber-700 border-t-cyber-accent rounded-full animate-spin"></div>
-                <span className="text-sm">Chargement des autres flux...</span>
-              </div>
-            </div>
-          )}
         </div>
 
         <button

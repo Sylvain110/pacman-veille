@@ -1,5 +1,5 @@
 import { ALL_FEEDS, CATEGORY_KEYWORDS } from '../constants';
-import { Article, Category, FeedType } from '../types';
+import { Article, Category, FeedType, FeedProgress } from '../types';
 
 const determineCategory = (title: string, description: string): Category => {
   const text = `${title} ${description}`.toLowerCase();
@@ -204,24 +204,35 @@ const fetchWithProxy = async (url: string): Promise<{ content: string, isJson: b
 };
 
 export const fetchAllFeeds = async (
-  onFeedLoaded?: (articles: Article[]) => void
+  onFeedLoaded?: (articles: Article[]) => void,
+  onProgress?: (progress: FeedProgress) => void
 ): Promise<Article[]> => {
   const allArticles: Article[] = [];
+  const total = ALL_FEEDS.length;
+  let loaded = 0;
 
   const promises = ALL_FEEDS.map(async (feed) => {
+    onProgress?.({ feedName: feed.name, status: 'loading', loaded, total });
+
     try {
       const { content, isJson } = await fetchWithProxy(feed.url);
 
       const items = isJson
         ? parseJSONFeed(content, feed.name, feed.type)
         : parseRSSContent(content, feed.name, feed.type);
+
       allArticles.push(...items);
+      loaded++;
+
+      onProgress?.({ feedName: feed.name, status: 'success', loaded, total });
       onFeedLoaded?.(
         [...allArticles].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
       );
 
       return items;
     } catch (error) {
+      loaded++;
+      onProgress?.({ feedName: feed.name, status: 'error', loaded, total });
       console.warn(`Error fetching ${feed.name}:`, error);
       return [];
     }

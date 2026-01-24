@@ -38,3 +38,12 @@ export interface FilterState {
   viewMode: FeedType;
   searchQuery: string;
 }
+
+export type FeedStatus = 'pending' | 'loading' | 'success' | 'error';
+
+export interface FeedProgress {
+  feedName: string;
+  status: FeedStatus;
+  loaded: number;
+  total: number;
+}
