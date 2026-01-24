@@ -25,8 +25,9 @@ const App = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await fetchAllFeeds();
-        setArticles(data);
+        await fetchAllFeeds((articles) => {
+          setArticles(articles);
+        });
       } catch (err) {
         setError('Impossible de récupérer les flux. Veuillez réessayer plus tard.');
       } finally {
@@ -135,7 +136,7 @@ const App = () => {
             )}
           </div>
 
-          {loading && (
+          {loading && articles.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <div className="w-12 h-12 border-4 border-cyber-700 border-t-cyber-accent rounded-full animate-spin"></div>
               <p className="text-gray-400 animate-pulse">Récupération des flux...</p>
@@ -163,11 +164,20 @@ const App = () => {
             </div>
           )}
 
-          {!loading && !error && (
+          {!error && filteredArticles.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredArticles.map((article) => (
                 <ArticleCard key={`${article.source}-${article.id}`} article={article} />
               ))}
+            </div>
+          )}
+
+          {loading && articles.length > 0 && (
+            <div className="flex justify-center py-6">
+              <div className="flex items-center gap-3 text-gray-400">
+                <div className="w-5 h-5 border-2 border-cyber-700 border-t-cyber-accent rounded-full animate-spin"></div>
+                <span className="text-sm">Chargement des autres flux...</span>
+              </div>
             </div>
           )}
         </div>

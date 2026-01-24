@@ -203,14 +203,22 @@ const fetchWithProxy = async (url: string): Promise<{ content: string, isJson: b
   }
 };
 
-export const fetchAllFeeds = async (): Promise<Article[]> => {
+export const fetchAllFeeds = async (
+  onFeedLoaded?: (articles: Article[]) => void
+): Promise<Article[]> => {
+  const allArticles: Article[] = [];
+
   const promises = ALL_FEEDS.map(async (feed) => {
     try {
       const { content, isJson } = await fetchWithProxy(feed.url);
-      
-      const items = isJson 
+
+      const items = isJson
         ? parseJSONFeed(content, feed.name, feed.type)
         : parseRSSContent(content, feed.name, feed.type);
+      allArticles.push(...items);
+      onFeedLoaded?.(
+        [...allArticles].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
+      );
 
       return items;
     } catch (error) {
@@ -219,8 +227,8 @@ export const fetchAllFeeds = async (): Promise<Article[]> => {
     }
   });
 
-  const results = await Promise.all(promises);
-  return results.flat().sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+  await Promise.all(promises);
+  return allArticles.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 };
 
 export const getRelativeTime = (date: Date): string => {
