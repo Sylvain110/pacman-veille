@@ -153,47 +153,54 @@ const PROXIES = [
 ];
 
 const fetchWithProxy = async (url: string): Promise<{ content: string, isJson: boolean }> => {
-  const cacheBuster = `?_cb=${Math.floor(Math.random() * 10000)}`;
-  const urlToFetch = url.includes('?') ? `${url}&_cb=${Math.floor(Math.random() * 10000)}` : `${url}${cacheBuster}`;
+  const cacheBuster = Math.floor(Math.random() * 10000);
+  const urlToFetch = url.includes('?')
+    ? `${url}&_cb=${cacheBuster}`
+    : `${url}?_cb=${cacheBuster}`;
 
-  for (const proxyTemplate of PROXIES) {
+  const proxyPromises = PROXIES.map(async (proxyTemplate) => {
+    const proxyUrl = proxyTemplate.replace("%s", encodeURIComponent(urlToFetch));
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
-      const proxyUrl = proxyTemplate.replace("%s", encodeURIComponent(urlToFetch));
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); 
-      
-      const response = await fetch(proxyUrl, { 
-        signal: controller.signal,
-      });
-      
+      const response = await fetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
 
-      if (response.ok) {
-        let text = await response.text();
-        
+      if (!response.ok) throw new Error('Response not OK');
 
-        if (proxyTemplate.includes('api.allorigins.win/get')) {
-            try {
-                const wrapper = JSON.parse(text);
-                if (wrapper.contents) text = wrapper.contents; 
-            } catch (e) { }
-        }
+      let text = await response.text();
 
-        const trimmed = text.trim();
-        
-
-        if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.includes('"items"')) {
-           return { content: trimmed, isJson: true };
-        }
-        
-        if (trimmed.startsWith('<') && !trimmed.includes('<!DOCTYPE html>')) {
-           return { content: trimmed, isJson: false };
-        }
+      if (proxyTemplate.includes('api.allorigins.win/get')) {
+        try {
+          const wrapper = JSON.parse(text);
+          if (wrapper.contents) text = wrapper.contents;
+        } catch (e) { }
       }
-    } catch (err) { }
+
+      const trimmed = text.trim();
+
+      if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.includes('"items"')) {
+        return { content: trimmed, isJson: true };
+      }
+
+      if (trimmed.startsWith('<') && !trimmed.includes('<!DOCTYPE html>')) {
+        return { content: trimmed, isJson: false };
+      }
+
+      throw new Error('Invalid content format');
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    }
+  });
+
+  try {
+    return await Promise.any(proxyPromises);
+  } catch (err) {
+    throw new Error(`Unable to fetch ${url} after trying all proxies`);
   }
-  throw new Error(`Unable to fetch ${url} after trying all proxies`);
 };
 
 export const fetchAllFeeds = async (): Promise<Article[]> => {
