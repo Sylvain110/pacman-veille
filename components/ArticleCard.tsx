@@ -25,7 +25,8 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
 
   const isNativeFrench = article.feedType === 'anssi' || 
                          article.source.includes('LeMagIT') || 
-                         article.source.includes('Zataz');
+                         article.source.includes('Zataz') ||
+                         article.source.includes('Dyrk');
 
   const handleShare = async () => {
     const shareData = {
