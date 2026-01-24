@@ -89,9 +89,10 @@ const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedTy
                         getText("content", "encoded") || 
                         getText("encoded") || "";
       
-      const div = document.createElement("div");
-      div.innerHTML = description;
-      let textContent = div.textContent || div.innerText || "";
+      // Extraction sécurisée du texte sans exécuter de scripts/handlers
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<body>${description}</body>`, 'text/html');
+      let textContent = doc.body.textContent || "";
       textContent = textContent.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
       const cleanDescription = textContent.slice(0, 180).trim() + (textContent.length > 180 ? "..." : "");
 
@@ -120,10 +121,9 @@ const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedTyp
     return data.items.map((item: any) => {
       const title = item.title || "No Title";
       const rawDesc = item.description || item.content || "";
-      
-      const div = document.createElement("div");
-      div.innerHTML = rawDesc;
-      const textContent = div.textContent || div.innerText || "";
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<body>${rawDesc}</body>`, 'text/html');
+      const textContent = doc.body.textContent || "";
       const cleanDescription = textContent.slice(0, 180).trim() + (textContent.length > 180 ? "..." : "");
 
       return {

@@ -5,7 +5,8 @@ export const PRESS_FEEDS: RSSFeed[] = [
   { name: "BleepingComputer", url: "https://www.bleepingcomputer.com/feed/", type: 'press' },
   { name: "LeMagIT Sécurité", url: "https://www.lemagit.fr/rss/ContentSyndication.xml", type: 'press' },
   { name: "Wired Security", url: "https://www.wired.com/feed/category/security/latest/rss", type: 'press' },
-  { name: "Zataz", url: "https://www.zataz.com/feed/", type: 'press' }
+  { name: "Zataz", url: "https://www.zataz.com/feed/", type: 'press' },
+  { name: "Dyrk", url: "https://dyrk.org/feed/", type: 'press' }
 ];
 
 export const ANSSI_FEEDS: RSSFeed[] = [
