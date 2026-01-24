@@ -4,6 +4,7 @@ import { PRESS_FEEDS, ANSSI_FEEDS } from './constants';
 import { fetchAllFeeds } from './utils/feedParser';
 import FilterSidebar from './components/FilterSidebar';
 import ArticleCard from './components/ArticleCard';
+import ArticleCardSkeleton from './components/ArticleCardSkeleton';
 import PinkyIcon from './components/PinkyIcon';
 
 const App = () => {
@@ -114,19 +115,19 @@ const App = () => {
           <div className="w-8"></div>
         </div>
 
-        {loading && progress && (
-          <div className="sticky top-0 lg:top-0 z-20 bg-cyber-800/90 backdrop-blur border-b border-cyber-700 px-4 py-2">
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
+        {loading && (
+          <div className={`sticky top-0 lg:top-0 z-20 bg-cyber-800/90 backdrop-blur border-b border-cyber-700 px-4 py-2 transition-opacity duration-300 ${progress ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="max-w-7xl mx-auto flex items-center gap-3 h-6">
               <div className="w-4 h-4 border-2 border-cyber-700 border-t-cyber-accent rounded-full animate-spin flex-shrink-0"></div>
               <div className="flex-1 flex items-center gap-3">
-                <span className="text-sm text-gray-400 truncate">{progress.feedName}</span>
+                <span className="text-sm text-gray-400 truncate">{progress?.feedName ?? ''}</span>
                 <div className="flex-1 h-1.5 bg-cyber-900 rounded-full overflow-hidden max-w-xs">
                   <div
                     className="h-full bg-cyber-accent transition-all duration-300 ease-out"
-                    style={{ width: `${(progress.loaded / progress.total) * 100}%` }}
+                    style={{ width: progress ? `${(progress.loaded / progress.total) * 100}%` : '0%' }}
                   />
                 </div>
-                <span className="text-sm text-gray-500 flex-shrink-0">{progress.loaded}/{progress.total}</span>
+                <span className="text-sm text-gray-500 flex-shrink-0">{progress ? `${progress.loaded}/${progress.total}` : ''}</span>
               </div>
             </div>
           </div>
@@ -158,9 +159,10 @@ const App = () => {
           </div>
 
           {loading && articles.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <div className="w-12 h-12 border-4 border-cyber-700 border-t-cyber-accent rounded-full animate-spin"></div>
-              <p className="text-gray-400 animate-pulse">Récupération des flux...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <ArticleCardSkeleton key={`skeleton-${i}`} />
+              ))}
             </div>
           )}
 
@@ -189,6 +191,9 @@ const App = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredArticles.map((article) => (
                 <ArticleCard key={`${article.source}-${article.id}`} article={article} />
+              ))}
+              {loading && progress && Array.from({ length: Math.min(6, progress.total - progress.loaded) }).map((_, i) => (
+                <ArticleCardSkeleton key={`skeleton-loading-${i}`} />
               ))}
             </div>
           )}
