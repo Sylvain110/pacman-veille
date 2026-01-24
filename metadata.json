@@ -1,5 +1,5 @@
 {
-  "name": "Pacman Veille",
+  "name": "Pac-Man Veille",
   "description": "Un tableau de bord de veille cybersécurité responsive agrégeant les flux RSS des meilleures sources. Fonctionnalités de marquage automatique, filtrage temporel et interface sombre moderne.",
   "requestFramePermissions": []
 }
