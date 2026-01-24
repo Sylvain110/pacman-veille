@@ -20,13 +20,24 @@ const CategoryBadge = ({ category }: CategoryBadgeProps) => {
   );
 };
 
+const isValidUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
+
 const ArticleCard = ({ article }: ArticleCardProps) => {
   const [showCopied, setShowCopied] = useState(false);
 
-  const isNativeFrench = article.feedType === 'anssi' || 
-                         article.source.includes('LeMagIT') || 
+  const isNativeFrench = article.feedType === 'anssi' ||
+                         article.source.includes('LeMagIT') ||
                          article.source.includes('Zataz') ||
                          article.source.includes('Dyrk');
+
+  const hasValidLink = isValidUrl(article.link);
 
   const handleShare = async () => {
     const shareData = {
@@ -78,28 +89,37 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
         </span>
         
         <div className="flex items-center gap-3">
-          <button 
-            onClick={handleShare}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-cyber-900/50 text-gray-400 hover:text-cyber-accent hover:bg-cyber-700 transition-all relative"
-            title="Partager"
-          >
-             <i className={`fa-solid ${showCopied ? 'fa-check text-green-400' : 'fa-share-nodes'} text-xs`}></i>
-             {showCopied && (
-                <span className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded shadow border border-cyber-700 whitespace-nowrap z-10">
-                  Lien copié !
-                </span>
-             )}
-          </button>
+          {hasValidLink && (
+            <button
+              onClick={handleShare}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-cyber-900/50 text-gray-400 hover:text-cyber-accent hover:bg-cyber-700 transition-all relative"
+              title="Partager"
+            >
+               <i className={`fa-solid ${showCopied ? 'fa-check text-green-400' : 'fa-share-nodes'} text-xs`}></i>
+               {showCopied && (
+                  <span className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded shadow border border-cyber-700 whitespace-nowrap z-10">
+                    Lien copié !
+                  </span>
+               )}
+            </button>
+          )}
 
-          <a 
-            href={article.link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-cyber-accent hover:text-white flex items-center gap-1 transition-colors ml-1"
-          >
-            Lire
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-          </a>
+          {hasValidLink ? (
+            <a
+              href={article.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-cyber-accent hover:text-white flex items-center gap-1 transition-colors ml-1"
+            >
+              Lire
+              <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+            </a>
+          ) : (
+            <span className="text-sm text-gray-500 flex items-center gap-1">
+              <i className="fa-solid fa-triangle-exclamation text-xs text-amber-500"></i>
+              Lien invalide
+            </span>
+          )}
         </div>
       </div>
     </div>

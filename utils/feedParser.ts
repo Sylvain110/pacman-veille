@@ -89,7 +89,6 @@ const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedTy
                         getText("content", "encoded") || 
                         getText("encoded") || "";
       
-      // Extraction sécurisée du texte sans exécuter de scripts/handlers
       const parser = new DOMParser();
       const doc = parser.parseFromString(`<body>${description}</body>`, 'text/html');
       let textContent = doc.body.textContent || "";
