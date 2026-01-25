@@ -64,13 +64,13 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   };
 
   return (
-    <div className="group relative bg-cyber-800 border border-cyber-700 rounded-xl p-5 hover:border-cyber-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyber-900/50 hover:-translate-y-1 flex flex-col h-full min-h-[220px]">
+    <article className="group relative bg-cyber-800 border border-cyber-700 rounded-xl p-5 hover:border-cyber-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyber-900/50 hover:-translate-y-1 flex flex-col h-full min-h-[220px]">
       <div className="flex-1">
         <div className="flex items-start justify-between mb-3 gap-2">
           <CategoryBadge category={article.category} />
-          <span className="text-xs text-gray-500 font-mono whitespace-nowrap">
+          <time dateTime={article.pubDate.toISOString()} className="text-xs text-gray-500 font-mono whitespace-nowrap">
             {getRelativeTime(article.pubDate)}
-          </span>
+          </time>
         </div>
         
         <h3 className="text-lg font-semibold text-gray-100 mb-2 leading-snug group-hover:text-cyber-accent transition-colors">
@@ -122,7 +122,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 
