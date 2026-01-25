@@ -17,8 +17,9 @@ export default defineConfig(({ mode, command }) => {
           transformIndexHtml() {
             const isDev = command === 'serve';
             const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self'";
-            const connectSrc = "https://api.rss2json.com https://api.codetabs.com https://corsproxy.io https://api.allorigins.win https://thingproxy.freeboard.io https://feeds.feedburner.com https://www.bleepingcomputer.com https://www.lemagit.fr https://www.wired.com https://www.zataz.com https://dyrk.org https://www.cert.ssi.gouv.fr https://krebsonsecurity.com https://www.darkreading.com";
-            const cspContent = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' ${connectSrc}; img-src 'self' data:;`;
+            const styleSrc = isDev ? "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com" : "'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com";
+            const connectSrc = "https://api.rss2json.com https://api.codetabs.com https://corsproxy.io https://api.allorigins.win https://thingproxy.freeboard.io https://feeds.feedburner.com https://www.bleepingcomputer.com https://www.lemagit.fr https://www.wired.com https://www.zataz.com https://dyrk.org https://www.cert.ssi.gouv.fr https://krebsonsecurity.com https://www.darkreading.com https://www.01net.com";
+            const cspContent = `default-src 'self'; script-src ${scriptSrc}; style-src ${styleSrc}; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' ${connectSrc}; img-src 'self'; object-src 'none';`;
 
             return [
               {
