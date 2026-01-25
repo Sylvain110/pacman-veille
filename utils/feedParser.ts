@@ -40,14 +40,30 @@ const parseDate = (dateStr: string): Date => {
   return new Date();
 };
 
-const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedType): Article[] => {
+const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedType, filterCategory?: string): Article[] => {
   try {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     
     const entries = Array.from(xmlDoc.querySelectorAll("item, entry"));
 
-    return entries.map((item) => {
+    return entries.flatMap((item) => {
+
+      if (filterCategory) {
+        const categories = Array.from(item.querySelectorAll("category"))
+          .map(el => el.textContent?.trim())
+          .filter((c): c is string => !!c);
+        
+        const atomCategories = Array.from(item.getElementsByTagName("category"))
+          .map(el => el.getAttribute("term"))
+          .filter((c): c is string => !!c);
+
+        const allCategories = [...categories, ...atomCategories];
+        
+        if (!allCategories.some(c => c.toLowerCase() === filterCategory.toLowerCase())) {
+          return [];
+        }
+      }
 
       const getText = (tag: string, alternateTag?: string) => {
 
@@ -95,7 +111,7 @@ const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedTy
       textContent = textContent.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
       const cleanDescription = textContent.slice(0, 180).trim() + (textContent.length > 180 ? "..." : "");
 
-      return {
+      return [{
         id: link,
         title: title.trim(),
         link,
@@ -104,7 +120,7 @@ const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedTy
         category: determineCategory(title, cleanDescription),
         description: cleanDescription,
         feedType: feedType
-      };
+      }];
     });
   } catch (e) {
     console.warn(`XML Parsing exception for ${sourceName}:`, e);
@@ -112,12 +128,23 @@ const parseRSSContent = (xmlString: string, sourceName: string, feedType: FeedTy
   }
 };
 
-const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedType): Article[] => {
+const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedType, filterCategory?: string): Article[] => {
   try {
     const data = JSON.parse(jsonString);
     if (data.status !== 'ok' || !Array.isArray(data.items)) return [];
 
-    return data.items.map((item: any) => {
+    return data.items.flatMap((item: any) => {
+      if (filterCategory) {
+        const categories = item.categories || item.tags || [];
+        if (Array.isArray(categories)) {
+          if (!categories.some((c: string) => typeof c === 'string' && c.toLowerCase() === filterCategory.toLowerCase())) {
+            return [];
+          }
+        } else {
+          return [];
+        }
+      }
+
       const title = item.title || "No Title";
       const rawDesc = item.description || item.content || "";
       const parser = new DOMParser();
@@ -125,7 +152,7 @@ const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedTyp
       const textContent = doc.body.textContent || "";
       const cleanDescription = textContent.slice(0, 180).trim() + (textContent.length > 180 ? "..." : "");
 
-      return {
+      return [{
         id: item.guid || item.link,
         title: title.trim(),
         link: item.link,
@@ -134,7 +161,7 @@ const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedTyp
         category: determineCategory(title, cleanDescription),
         description: cleanDescription,
         feedType: feedType
-      };
+      }];
     });
   } catch (e) {
     console.warn(`JSON Parsing exception for ${sourceName}:`, e);
@@ -216,9 +243,15 @@ export const fetchAllFeeds = async (
     try {
       const { content, isJson } = await fetchWithProxy(feed.url);
 
-      const items = isJson
-        ? parseJSONFeed(content, feed.name, feed.type)
-        : parseRSSContent(content, feed.name, feed.type);
+      let items = isJson
+        ? parseJSONFeed(content, feed.name, feed.type, feed.filterCategory)
+        : parseRSSContent(content, feed.name, feed.type, feed.filterCategory);
+
+       if (feed.name === "Dark Reading") {
+        items = items.filter(item => 
+          !/^[\w\-\s]+\.(jpg|jpeg|png|gif)$/i.test(item.description.trim())
+        );
+      }
 
       allArticles.push(...items);
       loaded++;

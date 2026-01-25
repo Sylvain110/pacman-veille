@@ -62,8 +62,10 @@ Les fichiers de production seront générés dans le dossier `dist/`.
 - The Hacker News
 - BleepingComputer
 - LeMagIT Sécurité
-- Wired Security
 - Zataz
+- Dyrk
+- Krebs on Security
+- Dark Reading
 
 ### ANSSI / CERT-FR
 - Alertes
