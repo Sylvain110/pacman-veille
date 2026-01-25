@@ -15,6 +15,7 @@ export interface RSSFeed {
   name: string;
   url: string;
   type: FeedType;
+  filterCategory?: string;
 }
 
 export interface Article {
