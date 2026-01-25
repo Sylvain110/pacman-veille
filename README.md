@@ -64,6 +64,7 @@ Les fichiers de production seront générés dans le dossier `dist/`.
 - LeMagIT Sécurité
 - Wired Security
 - Zataz
+- Dyrk
 
 ### ANSSI / CERT-FR
 - Alertes
