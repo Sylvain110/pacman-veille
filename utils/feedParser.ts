@@ -199,7 +199,9 @@ const fetchWithProxy = async (url: string): Promise<{ content: string, isJson: b
     ? `${url}&_cb=${cacheBuster}`
     : `${url}?_cb=${cacheBuster}`;
 
-  const proxyPromises = PROXIES.map(async (proxyTemplate) => {
+  const selectedProxies = [...PROXIES].sort(() => 0.5 - Math.random()).slice(0, 3);
+
+  const proxyPromises = selectedProxies.map(async (proxyTemplate) => {
     const proxyUrl = proxyTemplate.replace("%s", encodeURIComponent(urlToFetch));
 
     const controller = new AbortController();
