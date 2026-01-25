@@ -4,9 +4,10 @@ export const PRESS_FEEDS: RSSFeed[] = [
   { name: "The Hacker News", url: "https://feeds.feedburner.com/TheHackersNews", type: 'press' },
   { name: "BleepingComputer", url: "https://www.bleepingcomputer.com/feed/", type: 'press' },
   { name: "LeMagIT Sécurité", url: "https://www.lemagit.fr/rss/ContentSyndication.xml", type: 'press' },
-  { name: "Wired Security", url: "https://www.wired.com/feed/category/security/latest/rss", type: 'press' },
   { name: "Zataz", url: "https://www.zataz.com/feed/", type: 'press' },
-  { name: "Dyrk", url: "https://dyrk.org/feed/", type: 'press' }
+  { name: "Dyrk", url: "https://dyrk.org/feed/", type: 'press' },
+  { name: "Krebs on Security", url: "https://krebsonsecurity.com/feed/", type: 'press' },
+  { name: "Dark Reading", url: "https://www.darkreading.com/rss.xml", type: 'press' }
 ];
 
 export const ANSSI_FEEDS: RSSFeed[] = [

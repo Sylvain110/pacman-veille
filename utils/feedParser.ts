@@ -216,9 +216,15 @@ export const fetchAllFeeds = async (
     try {
       const { content, isJson } = await fetchWithProxy(feed.url);
 
-      const items = isJson
+      let items = isJson
         ? parseJSONFeed(content, feed.name, feed.type)
         : parseRSSContent(content, feed.name, feed.type);
+
+       if (feed.name === "Dark Reading") {
+        items = items.filter(item => 
+          !/^[\w\-\s]+\.(jpg|jpeg|png|gif)$/i.test(item.description.trim())
+        );
+      }
 
       allArticles.push(...items);
       loaded++;
