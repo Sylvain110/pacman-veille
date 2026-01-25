@@ -34,6 +34,14 @@ export default defineConfig(({ mode, command }) => {
               }
             } catch (e) { console.warn("Impossible de lire metadata.json pour le SEO", e); }
 
+            const jsonLd = {
+              "@context": "https://schema.org",
+              "@type": "NewsMedia",
+              "name": metaTitle,
+              "url": "https://pacman-veille.fr",
+              "description": metaDescription
+            };
+
             return [
               {
                 tag: 'meta',
@@ -89,6 +97,20 @@ export default defineConfig(({ mode, command }) => {
                   name: 'robots',
                   content: 'index, follow',
                 },
+                injectTo: 'head',
+              },
+              {
+                tag: 'link',
+                attrs: {
+                  rel: 'canonical',
+                  href: 'https://pacman-veille.fr/',
+                },
+                injectTo: 'head',
+              },
+              {
+                tag: 'script',
+                attrs: { type: 'application/ld+json' },
+                children: JSON.stringify(jsonLd),
                 injectTo: 'head',
               },
             ];
