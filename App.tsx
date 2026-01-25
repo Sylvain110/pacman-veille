@@ -116,7 +116,7 @@ const App = () => {
         </div>
 
         {loading && (
-          <div className={`sticky top-0 lg:top-0 z-20 bg-cyber-800/90 backdrop-blur border-b border-cyber-700 px-4 py-2 transition-opacity duration-300 ${progress ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`fixed top-0 left-0 right-0 z-50 bg-cyber-800/95 backdrop-blur border-b border-cyber-700 px-4 py-2 transition-opacity duration-300 ${progress ? 'opacity-100' : 'opacity-0'}`}>
             <div className="max-w-7xl mx-auto flex items-center gap-3 h-6">
               <div className="w-4 h-4 border-2 border-cyber-700 border-t-cyber-accent rounded-full animate-spin flex-shrink-0"></div>
               <div className="flex-1 flex items-center gap-3">
