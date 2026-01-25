@@ -24,6 +24,19 @@ const App = () => {
   });
 
   useEffect(() => {
+    const loadStyle = (href: string) => {
+      if (document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) return;
+      const link = document.createElement('link');
+      link.href = href;
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    };
+
+    loadStyle('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    loadStyle('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+  }, []);
+
+  useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
