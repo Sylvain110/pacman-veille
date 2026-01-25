@@ -7,7 +7,6 @@ const determineCategory = (title: string, description: string): Category => {
   let bestCategory = Category.General;
   let maxScore = 0;
 
-  // Ordre de priorité pour départager en cas d'égalité de score
   const categoriesToCheck = [
     Category.Ransomware,
     Category.Espionage,
@@ -20,7 +19,6 @@ const determineCategory = (title: string, description: string): Category => {
 
   for (const category of categoriesToCheck) {
     const keywords = CATEGORY_KEYWORDS[category];
-    // On compte +1 pour chaque mot-clé trouvé dans le texte
     const score = keywords.reduce((acc, k) => text.includes(k) ? acc + 1 : acc, 0);
 
     if (score > maxScore) {
