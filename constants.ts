@@ -78,7 +78,7 @@ export const CATEGORY_KEYWORDS: Record<Category, string[]> = {
   [Category.Vulnerability]: [
     'cve-', 'vuln', 'patch', 'zero-day', '0-day', 'flaw', 'exploit', 'bug', 'faille', 
     'critique', 'update', 'rce', 'remote code execution', 'injection', 'xss', 'overflow',
-    'microsoft patch', 'update tuesday', 'kev', 'poc'
+    'microsoft patch', 'update tuesday', 'kev', 'poc', 'security update', 'correctif'
   ],
   [Category.Malware]: [
     'malware', 'trojan', 'backdoor', 'spyware', 'botnet', 'loader', 'stealer', 'rootkit', 
@@ -87,7 +87,7 @@ export const CATEGORY_KEYWORDS: Record<Category, string[]> = {
   ],
   [Category.Phishing]: [
     'phishing', 'scam', 'hameçonnage', 'social engineering', 'smishing', 'vishing', 'fraud', 
-    'lure', 'campaign', 'impersonat', 'fake', 'arnaque', 'escroquerie', 'bec', 'business email compromise'
+    'lure', 'campaign', 'impersonat', 'fake', 'arnaque', 'arnaques','escroquerie', 'bec', 'business email compromise'
   ],
   [Category.Espionage]: [
     'apt', 'state-sponsored', 'espionage', 'nation-state', 'fbi', 'nsa', 'cisa', 'doj', 'indictment',
@@ -96,7 +96,7 @@ export const CATEGORY_KEYWORDS: Record<Category, string[]> = {
   ],
   [Category.AISec]: [
     'ai ', 'artificial intelligence', 'llm', 'chatgpt', 'openai', 'deepfake', 'machine learning',
-    'copilot', 'gemini', 'anthropic', 'nvidia', 'gpu', 'quantum', 'crypto', 'blockchain'
+    'copilot', 'gemini', 'anthropic', 'nvidia', 'gpu', 'quantum', 'crypto', 'blockchain', 'neural network', 'générative'
   ],
   [Category.General]: []
 };

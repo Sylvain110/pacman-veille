@@ -4,15 +4,30 @@ import { Article, Category, FeedType, FeedProgress } from '../types';
 const determineCategory = (title: string, description: string): Category => {
   const text = `${title} ${description}`.toLowerCase();
   
-  if (CATEGORY_KEYWORDS[Category.Ransomware].some(k => text.includes(k))) return Category.Ransomware;
-  if (CATEGORY_KEYWORDS[Category.Espionage].some(k => text.includes(k))) return Category.Espionage;
-  if (CATEGORY_KEYWORDS[Category.Vulnerability].some(k => text.includes(k))) return Category.Vulnerability;
-  if (CATEGORY_KEYWORDS[Category.DataBreach].some(k => text.includes(k))) return Category.DataBreach;
-  if (CATEGORY_KEYWORDS[Category.Malware].some(k => text.includes(k))) return Category.Malware;
-  if (CATEGORY_KEYWORDS[Category.Phishing].some(k => text.includes(k))) return Category.Phishing;
-  if (CATEGORY_KEYWORDS[Category.AISec].some(k => text.includes(k))) return Category.AISec;
+  let bestCategory = Category.General;
+  let maxScore = 0;
 
-  return Category.General;
+  const categoriesToCheck = [
+    Category.Ransomware,
+    Category.Espionage,
+    Category.Vulnerability,
+    Category.DataBreach,
+    Category.Malware,
+    Category.Phishing,
+    Category.AISec
+  ];
+
+  for (const category of categoriesToCheck) {
+    const keywords = CATEGORY_KEYWORDS[category];
+    const score = keywords.reduce((acc, k) => text.includes(k) ? acc + 1 : acc, 0);
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestCategory = category;
+    }
+  }
+
+  return bestCategory;
 };
 
 const parseDate = (dateStr: string): Date => {

@@ -64,7 +64,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   };
 
   return (
-    <div className="group relative bg-cyber-800 border border-cyber-700 rounded-xl p-5 hover:border-cyber-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyber-900/50 hover:-translate-y-1 flex flex-col h-full">
+    <div className="group relative bg-cyber-800 border border-cyber-700 rounded-xl p-5 hover:border-cyber-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyber-900/50 hover:-translate-y-1 flex flex-col h-full min-h-[220px]">
       <div className="flex-1">
         <div className="flex items-start justify-between mb-3 gap-2">
           <CategoryBadge category={article.category} />
