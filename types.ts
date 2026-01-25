@@ -3,7 +3,7 @@ export enum Category {
   DataBreach = 'Fuite de Données',
   Vulnerability = 'Vulnérabilité',
   Malware = 'Malware',
-  Phishing = 'Hameçonnage',
+  Phishing = 'Phishing',
   Espionage = 'Gouv & APT',
   AISec = 'IA & Tech',
   General = 'Général'
