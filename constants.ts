@@ -9,6 +9,7 @@ export const PRESS_FEEDS: RSSFeed[] = [
   { name: "Krebs on Security", url: "https://krebsonsecurity.com/feed/", type: 'press' },
   { name: "Dark Reading", url: "https://www.darkreading.com/rss.xml", type: 'press' },
   { name: "01net", url: "https://www.01net.com/feed/", type: 'press', filterCategory: 'Cybersécurité' },
+  { name: "DataSecurityBreach", url: "https://www.datasecuritybreach.fr/feed/", type: 'press' },
 ];
 
 export const ANSSI_FEEDS: RSSFeed[] = [
