@@ -66,6 +66,8 @@ Les fichiers de production seront générés dans le dossier `dist/`.
 - Dyrk
 - Krebs on Security
 - Dark Reading
+- 01net 
+- DataSecurityBreach
 
 ### ANSSI / CERT-FR
 - Alertes
