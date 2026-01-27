@@ -187,9 +187,7 @@ const parseJSONFeed = (jsonString: string, sourceName: string, feedType: FeedTyp
 const PROXIES = [
   "https://api.rss2json.com/v1/api.json?rss_url=%s",
   "https://api.codetabs.com/v1/proxy?quest=%s",
-  "https://corsproxy.io/?%s", 
-  "https://api.allorigins.win/get?url=%s",
-  "https://api.allorigins.win/raw?url=%s",
+  "https://corsproxy.io/?%s",
   "https://thingproxy.freeboard.io/fetch/%s",
 ];
 
@@ -199,7 +197,9 @@ const fetchWithProxy = async (url: string): Promise<{ content: string, isJson: b
     ? `${url}&_cb=${cacheBuster}`
     : `${url}?_cb=${cacheBuster}`;
 
-  const proxyPromises = PROXIES.map(async (proxyTemplate) => {
+  const selectedProxies = [...PROXIES].sort(() => 0.5 - Math.random()).slice(0, 2);
+
+  const proxyPromises = selectedProxies.map(async (proxyTemplate) => {
     const proxyUrl = proxyTemplate.replace("%s", encodeURIComponent(urlToFetch));
 
     const controller = new AbortController();
