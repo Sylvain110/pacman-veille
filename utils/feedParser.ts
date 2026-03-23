@@ -1,26 +1,46 @@
 import { ALL_FEEDS, CATEGORY_KEYWORDS } from '../constants';
 import { Article, Category, FeedType, FeedProgress } from '../types';
 
+// Fonction utilitaire pour éviter le "Rate Limiting" (Erreur 429)
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+// +2 si le mot-clé est dans le titre, +1 si dans la description uniquement.
+// Utilise word boundary (\b) pour les mots courts afin d eviter les faux positifs
+const scoreKeyword = (keyword: string, title: string, desc: string): number => {
+  const isMultiWord = keyword.includes(" ") || keyword.includes("-");
+  let regex: RegExp;
+  try {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    regex = isMultiWord
+      ? new RegExp(escaped, "i")
+      : new RegExp("\\b" + escaped + "\\b", "i");
+  } catch {
+    return 0;
+  }
+  return (regex.test(title) ? 2 : 0) + (regex.test(desc) ? 1 : 0);
+};
+
 const determineCategory = (title: string, description: string): Category => {
-  const text = `${title} ${description}`.toLowerCase();
+  const categoriesToCheck: Category[] = [
+    Category.EInvoicing,
+    Category.LMNP,
+    Category.Tools,
+    Category.Accounting,
+    Category.Market,
+    Category.AI,
+  ];
 
   let bestCategory = Category.General;
   let maxScore = 0;
 
-  const categoriesToCheck = [
-    Category.AI,
-    Category.Market,
-    Category.Accounting,
-    Category.Tools,
-    Category.IMMOBILIER,
-    Category.EInvoicing,
-  ];
-
   for (const category of categoriesToCheck) {
     const keywords = CATEGORY_KEYWORDS[category] ?? [];
-    const score = keywords.reduce((acc, k) => (text.includes(k) ? acc + 1 : acc), 0);
+    const score = keywords.reduce(
+      (acc, k) => acc + scoreKeyword(k, title, description),
+      0
+    );
 
-    if (score > maxScore) {
+    if (score >= 2 && score > maxScore) {
       maxScore = score;
       bestCategory = category;
     }
@@ -161,10 +181,19 @@ const parseJSONFeed = (
   filterCategory?: string
 ): Article[] => {
   try {
-    const data = JSON.parse(jsonString);
-    if (data.status !== 'ok' || !Array.isArray(data.items)) return [];
+    let data;
+    try {
+        data = JSON.parse(jsonString);
+    } catch {
+        return []; // Si le JSON est invalide, on ignore
+    }
+    
+    // allorigins retourne le contenu dans data.contents
+    const items = data.contents ? JSON.parse(data.contents).items : data.items;
 
-    return data.items.flatMap((item: any) => {
+    if (!Array.isArray(items)) return [];
+
+    return items.flatMap((item: any) => {
       if (filterCategory) {
         const categories = item.categories || item.tags || [];
         if (Array.isArray(categories)) {
@@ -209,69 +238,52 @@ const parseJSONFeed = (
   }
 };
 
-const PROXIES = [
-  'https://api.rss2json.com/v1/api.json?rss_url=%s',
-  'https://api.codetabs.com/v1/proxy?quest=%s',
-  'https://corsproxy.io/?%s',
-  'https://thingproxy.freeboard.io/fetch/%s',
+// Proxies plus fiables. allorigins est souvent le meilleur pour éviter les erreurs CORS/429.
+const PROXY_FUNCTIONS = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
 ];
 
-const fetchWithProxy = async (
-  url: string
-): Promise<{ content: string; isJson: boolean }> => {
-  const cacheBuster = Math.floor(Math.random() * 10000);
-  const urlToFetch = url.includes('?')
-    ? `${url}&_cb=${cacheBuster}`
-    : `${url}?_cb=${cacheBuster}`;
+const fetchWithProxy = async (url: string): Promise<{ content: string; isJson: boolean }> => {
+  const cacheBuster = Math.floor(Math.random() * 100);
+  const urlToFetch = url.includes('?') ? `${url}&_cb=${cacheBuster}` : `${url}?_cb=${cacheBuster}`;
 
-  const selectedProxies = [...PROXIES].sort(() => 0.5 - Math.random()).slice(0, 2);
-
-  const proxyPromises = selectedProxies.map(async (proxyTemplate) => {
-    const proxyUrl = proxyTemplate.replace('%s', encodeURIComponent(urlToFetch));
-
+  for (const proxyFn of PROXY_FUNCTIONS) {
+    const proxyUrl = proxyFn(urlToFetch);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 seconde max par proxy
 
     try {
       const response = await fetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
 
-      if (!response.ok) throw new Error('Response not OK');
-
-      let text = await response.text();
-
-      if (proxyTemplate.includes('api.allorigins.win/get')) {
-        try {
-          const wrapper = JSON.parse(text);
-          if (wrapper.contents) text = wrapper.contents;
-        } catch (e) {}
+      if (response.status === 429) {
+          console.warn(`Rate limit on ${proxyUrl}, skipping to next proxy...`);
+          continue; 
       }
 
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      let text = await response.text();
       const trimmed = text.trim();
 
-      if (
-        (trimmed.startsWith('{') || trimmed.startsWith('[')) &&
-        trimmed.includes('"items"')
-      ) {
+      // Détection basique JSON vs XML
+      if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
         return { content: trimmed, isJson: true };
       }
 
       if (trimmed.startsWith('<') && !trimmed.includes('<!DOCTYPE html>')) {
         return { content: trimmed, isJson: false };
       }
-
-      throw new Error('Invalid content format');
-    } catch (err) {
+      
+    } catch (err: any) {
       clearTimeout(timeoutId);
-      throw err;
+      // On ignore l'erreur silencieusement et on passe au proxy suivant
     }
-  });
-
-  try {
-    return await Promise.any(proxyPromises);
-  } catch (err) {
-    throw new Error(`Unable to fetch ${url} after trying all proxies`);
   }
+
+  throw new Error(`Unable to fetch ${url} after trying all proxies`);
 };
 
 export const fetchAllFeeds = async (
@@ -282,7 +294,9 @@ export const fetchAllFeeds = async (
   const total = ALL_FEEDS.length;
   let loaded = 0;
 
-  const promises = ALL_FEEDS.map(async (feed) => {
+  // IMPORTANT : Utilisation d'une boucle for...of au lieu de Promise.all
+  // Cela permet de faire les requêtes séquentiellement et d'éviter l'erreur 429 (Too Many Requests)
+  for (const feed of ALL_FEEDS) {
     onProgress?.({ feedName: feed.name, status: 'loading', loaded, total });
 
     try {
@@ -296,20 +310,22 @@ export const fetchAllFeeds = async (
       loaded++;
 
       onProgress?.({ feedName: feed.name, status: 'success', loaded, total });
+      
+      // On met à jour l'UI après chaque flux réussi
       onFeedLoaded?.(
         [...allArticles].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
       );
 
-      return items;
+      // Petite pause entre chaque flux pour ne pas agresser les serveurs proxy
+      await delay(300); 
+
     } catch (error) {
       loaded++;
       onProgress?.({ feedName: feed.name, status: 'error', loaded, total });
       console.warn(`Error fetching ${feed.name}:`, error);
-      return [];
     }
-  });
+  }
 
-  await Promise.all(promises);
   return allArticles.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 };
 

@@ -1,345 +1,43 @@
-import { ALL_FEEDS, CATEGORY_KEYWORDS } from '../constants';
-import { Article, Category, FeedType, FeedProgress } from '../types';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getRelativeTime } from '../utils/feedParser';
 
-// Fonction utilitaire pour éviter le "Rate Limiting" (Erreur 429)
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+describe('getRelativeTime', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-15T12:00:00Z'));
+  });
 
-// +2 si le mot-clé est dans le titre, +1 si dans la description uniquement.
-// Utilise word boundary (\b) pour les mots courts afin d eviter les faux positifs
-const scoreKeyword = (keyword: string, title: string, desc: string): number => {
-  const isMultiWord = keyword.includes(" ") || keyword.includes("-");
-  let regex: RegExp;
-  try {
-    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    regex = isMultiWord
-      ? new RegExp(escaped, "i")
-      : new RegExp("\\b" + escaped + "\\b", "i");
-  } catch {
-    return 0;
-  }
-  return (regex.test(title) ? 2 : 0) + (regex.test(desc) ? 1 : 0);
-};
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
-const determineCategory = (title: string, description: string): Category => {
-  const categoriesToCheck: Category[] = [
-    Category.EInvoicing,
-    Category.IMMOBILIER,
-    Category.Tools,
-    Category.Accounting,
-    Category.Market,
-    Category.AI,
-  ];
+  it('retourne "À l\'instant" pour une date très récente', () => {
+    const date = new Date('2024-01-15T11:59:30Z');
+    expect(getRelativeTime(date)).toBe("À l'instant");
+  });
 
-  let bestCategory = Category.General;
-  let maxScore = 0;
+  it('retourne le temps en minutes pour moins d\'une heure', () => {
+    const date = new Date('2024-01-15T11:30:00Z');
+    expect(getRelativeTime(date)).toBe('Il y a 30 min');
+  });
 
-  for (const category of categoriesToCheck) {
-    const keywords = CATEGORY_KEYWORDS[category] ?? [];
-    const score = keywords.reduce(
-      (acc, k) => acc + scoreKeyword(k, title, description),
-      0
-    );
+  it('retourne le temps en heures pour moins d\'un jour', () => {
+    const date = new Date('2024-01-15T08:00:00Z');
+    expect(getRelativeTime(date)).toBe('Il y a 4 h');
+  });
 
-    if (score >= 2 && score > maxScore) {
-      maxScore = score;
-      bestCategory = category;
-    }
-  }
+  it('retourne le temps en jours pour moins d\'une semaine', () => {
+    const date = new Date('2024-01-13T12:00:00Z');
+    expect(getRelativeTime(date)).toBe('Il y a 2 j');
+  });
 
-  return bestCategory;
-};
+  it('retourne la date formatée pour plus d\'une semaine', () => {
+    const date = new Date('2024-01-01T12:00:00Z');
+    expect(getRelativeTime(date)).toBe('01/01/2024');
+  });
 
-const parseDate = (dateStr: string): Date => {
-  if (!dateStr) return new Date();
-
-  const d = new Date(dateStr);
-  if (!isNaN(d.getTime())) return d;
-
-  const dSlash = new Date(dateStr.replace(/-/g, '/'));
-  if (!isNaN(dSlash.getTime())) return dSlash;
-
-  const sqlMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-  if (sqlMatch) {
-    return new Date(
-      parseInt(sqlMatch[1], 10),
-      parseInt(sqlMatch[2], 10) - 1,
-      parseInt(sqlMatch[3], 10),
-      parseInt(sqlMatch[4], 10),
-      parseInt(sqlMatch[5], 10),
-      parseInt(sqlMatch[6], 10)
-    );
-  }
-
-  return new Date();
-};
-
-const parseRSSContent = (
-  xmlString: string,
-  sourceName: string,
-  feedType: FeedType,
-  filterCategory?: string
-): Article[] => {
-  try {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-    const entries = Array.from(xmlDoc.querySelectorAll('item, entry'));
-
-    return entries.flatMap((item) => {
-      if (filterCategory) {
-        const categories = Array.from(item.querySelectorAll('category'))
-          .map(el => el.textContent?.trim())
-          .filter((c): c is string => !!c);
-
-        const atomCategories = Array.from(item.getElementsByTagName('category'))
-          .map(el => el.getAttribute('term'))
-          .filter((c): c is string => !!c);
-
-        const allCategories = [...categories, ...atomCategories];
-
-        if (!allCategories.some(c => c.toLowerCase() === filterCategory.toLowerCase())) {
-          return [];
-        }
-      }
-
-      const getText = (tag: string, alternateTag?: string) => {
-        const simple = item.querySelector(tag)?.textContent;
-        if (simple) return simple;
-
-        const byTag = item.getElementsByTagName(tag)[0]?.textContent;
-        if (byTag) return byTag;
-
-        const byTagNS = item.getElementsByTagNameNS('*', tag)[0]?.textContent;
-        if (byTagNS) return byTagNS;
-
-        if (alternateTag) {
-          const alt =
-            item.getElementsByTagName(alternateTag)[0]?.textContent ||
-            item.getElementsByTagNameNS('*', alternateTag)[0]?.textContent;
-          if (alt) return alt;
-
-          const colonTag = item.getElementsByTagName('content:' + alternateTag)[0]?.textContent;
-          if (colonTag) return colonTag;
-        }
-
-        return null;
-      };
-
-      const title = getText('title') || 'No Title';
-
-      let link = getText('link');
-      if (!link) {
-        link = item.querySelector('link')?.getAttribute('href') || '#';
-      }
-
-      const dateNode =
-        item.querySelector('pubDate') ||
-        item.querySelector('dc\\:date') ||
-        item.querySelector('date') ||
-        item.querySelector('updated') ||
-        item.querySelector('published');
-      const dateStr = dateNode?.textContent || new Date().toISOString();
-
-      let description =
-        getText('description') ||
-        getText('summary') ||
-        getText('content', 'encoded') ||
-        getText('encoded') ||
-        '';
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(`<body>${description}</body>`, 'text/html');
-      let textContent = doc.body.textContent || '';
-      textContent = textContent
-        .replace(/<!\[CDATA\[/g, '')
-        .replace(/\]\]>/g, '');
-      const cleanDescription =
-        textContent.slice(0, 180).trim() + (textContent.length > 180 ? '...' : '');
-
-      return [
-        {
-          id: link,
-          title: title.trim(),
-          link,
-          pubDate: parseDate(dateStr),
-          source: sourceName,
-          category: determineCategory(title, cleanDescription),
-          description: cleanDescription,
-          feedType,
-        },
-      ];
-    });
-  } catch (e) {
-    console.warn(`XML Parsing exception for ${sourceName}:`, e);
-    return [];
-  }
-};
-
-const parseJSONFeed = (
-  jsonString: string,
-  sourceName: string,
-  feedType: FeedType,
-  filterCategory?: string
-): Article[] => {
-  try {
-    let data;
-    try {
-        data = JSON.parse(jsonString);
-    } catch {
-        return []; // Si le JSON est invalide, on ignore
-    }
-    
-    // allorigins retourne le contenu dans data.contents
-    const items = data.contents ? JSON.parse(data.contents).items : data.items;
-
-    if (!Array.isArray(items)) return [];
-
-    return items.flatMap((item: any) => {
-      if (filterCategory) {
-        const categories = item.categories || item.tags || [];
-        if (Array.isArray(categories)) {
-          if (
-            !categories.some(
-              (c: string) =>
-                typeof c === 'string' &&
-                c.toLowerCase() === filterCategory.toLowerCase()
-            )
-          ) {
-            return [];
-          }
-        } else {
-          return [];
-        }
-      }
-
-      const title = item.title || 'No Title';
-      const rawDesc = item.description || item.content || '';
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(`<body>${rawDesc}</body>`, 'text/html');
-      const textContent = doc.body.textContent || '';
-      const cleanDescription =
-        textContent.slice(0, 180).trim() + (textContent.length > 180 ? '...' : '');
-
-      return [
-        {
-          id: item.guid || item.link,
-          title: title.trim(),
-          link: item.link,
-          pubDate: parseDate(item.pubDate),
-          source: sourceName,
-          category: determineCategory(title, cleanDescription),
-          description: cleanDescription,
-          feedType,
-        },
-      ];
-    });
-  } catch (e) {
-    console.warn(`JSON Parsing exception for ${sourceName}:`, e);
-    return [];
-  }
-};
-
-// Proxies plus fiables. allorigins est souvent le meilleur pour éviter les erreurs CORS/429.
-const PROXY_FUNCTIONS = [
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
-];
-
-const fetchWithProxy = async (url: string): Promise<{ content: string; isJson: boolean }> => {
-  const cacheBuster = Math.floor(Math.random() * 10000);
-  const urlToFetch = url.includes('?') ? `${url}&_cb=${cacheBuster}` : `${url}?_cb=${cacheBuster}`;
-
-  for (const proxyFn of PROXY_FUNCTIONS) {
-    const proxyUrl = proxyFn(urlToFetch);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 secondes max par proxy
-
-    try {
-      const response = await fetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (response.status === 429) {
-          console.warn(`Rate limit on ${proxyUrl}, skipping to next proxy...`);
-          continue; 
-      }
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      let text = await response.text();
-      const trimmed = text.trim();
-
-      // Détection basique JSON vs XML
-      if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
-        return { content: trimmed, isJson: true };
-      }
-
-      if (trimmed.startsWith('<') && !trimmed.includes('<!DOCTYPE html>')) {
-        return { content: trimmed, isJson: false };
-      }
-      
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      // On ignore l'erreur silencieusement et on passe au proxy suivant
-    }
-  }
-
-  throw new Error(`Unable to fetch ${url} after trying all proxies`);
-};
-
-export const fetchAllFeeds = async (
-  onFeedLoaded?: (articles: Article[]) => void,
-  onProgress?: (progress: FeedProgress) => void
-): Promise<Article[]> => {
-  const allArticles: Article[] = [];
-  const total = ALL_FEEDS.length;
-  let loaded = 0;
-
-  // IMPORTANT : Utilisation d'une boucle for...of au lieu de Promise.all
-  // Cela permet de faire les requêtes séquentiellement et d'éviter l'erreur 429 (Too Many Requests)
-  for (const feed of ALL_FEEDS) {
-    onProgress?.({ feedName: feed.name, status: 'loading', loaded, total });
-
-    try {
-      const { content, isJson } = await fetchWithProxy(feed.url);
-
-      const items = isJson
-        ? parseJSONFeed(content, feed.name, feed.type, feed.filterCategory)
-        : parseRSSContent(content, feed.name, feed.type, feed.filterCategory);
-
-      allArticles.push(...items);
-      loaded++;
-
-      onProgress?.({ feedName: feed.name, status: 'success', loaded, total });
-      
-      // On met à jour l'UI après chaque flux réussi
-      onFeedLoaded?.(
-        [...allArticles].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
-      );
-
-      // Petite pause entre chaque flux pour ne pas agresser les serveurs proxy
-      await delay(300); 
-
-    } catch (error) {
-      loaded++;
-      onProgress?.({ feedName: feed.name, status: 'error', loaded, total });
-      console.warn(`Error fetching ${feed.name}:`, error);
-    }
-  }
-
-  return allArticles.sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
-};
-
-export const getRelativeTime = (date: Date): string => {
-  if (isNaN(date.getTime())) return 'Date inconnue';
-
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 0) return "À l'instant";
-  if (diffInSeconds < 60) return "À l'instant";
-  if (diffInSeconds < 3600) return `Il y a ${Math.floor(diffInSeconds / 60)} min`;
-  if (diffInSeconds < 86400) return `Il y a ${Math.floor(diffInSeconds / 3600)} h`;
-  if (diffInSeconds < 604800) return `Il y a ${Math.floor(diffInSeconds / 86400)} j`;
-
-  return date.toLocaleDateString('fr-FR');
-};
+  it('retourne "Date inconnue" pour une date invalide', () => {
+    const date = new Date('invalid');
+    expect(getRelativeTime(date)).toBe('Date inconnue');
+  });
+});
