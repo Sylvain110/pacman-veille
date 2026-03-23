@@ -3,7 +3,7 @@ export enum Category {
   Market     = 'Marché',
   Accounting = 'Comptabilité',
   Tools      = 'Outils',
-  LMNP       = 'LMNP',
+  IMMOBILIER = 'Immobilier',
   EInvoicing = 'Facturation Électronique',
   General    = 'Général'
 }
@@ -35,6 +35,7 @@ export interface FilterState {
   sources: string[];
   categories: Category[];
   searchQuery: string;
+  viewMode: 'press' | 'realestate';
 }
  
 export type FeedStatus = 'pending' | 'loading' | 'success' | 'error';

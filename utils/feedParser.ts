@@ -12,7 +12,7 @@ const determineCategory = (title: string, description: string): Category => {
     Category.Market,
     Category.Accounting,
     Category.Tools,
-    Category.LMNP,
+    Category.IMMOBILIER,
     Category.EInvoicing,
   ];
 

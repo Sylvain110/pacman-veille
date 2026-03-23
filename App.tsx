@@ -150,7 +150,7 @@ const App = () => {
           {/* Desktop header */}
           <div className="mb-8 hidden lg:block">
             <h1 className="text-3xl font-bold text-white mb-2">
-              Veille Comptabilité, IA & LMNP
+              Veille Comptabilité, IA & Immobilier
             </h1>
             <p className="text-gray-400 mb-4">
               Actualités agrégées en temps réel : intelligence artificielle, comptabilité,
