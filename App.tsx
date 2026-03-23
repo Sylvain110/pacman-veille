@@ -52,7 +52,7 @@ const App = () => {
     loadData();
   }, []);
 
-  const { filteredArticles, timeCounts } = useMemo(() => {
+  const { filteredArticles, timeCounts, categoryCounts } = useMemo(() => {
     const now = new Date();
 
     const contextArticles = articles.filter(article => {
@@ -87,18 +87,31 @@ const App = () => {
       'Today': 0, '48h': 0, 'Week': 0, 'All': 0
     };
 
+    const categoryCounts: Record<Category, number> = {
+      [Category.AI]: 0,
+      [Category.Market]: 0,
+      [Category.Accounting]: 0,
+      [Category.Tools]: 0,
+      [Category.IMMOBILIER]: 0,
+      [Category.EInvoicing]: 0,
+      [Category.General]: 0
+    };
+
     contextArticles.forEach(article => {
       if (checkTime(article.pubDate, 'Today')) counts['Today']++;
       if (checkTime(article.pubDate, '48h'))   counts['48h']++;
       if (checkTime(article.pubDate, 'Week'))  counts['Week']++;
       if (checkTime(article.pubDate, 'All'))   counts['All']++;
+      
+      // Compter par catégorie
+      categoryCounts[article.category]++;
     });
 
     const finalArticles = contextArticles.filter(article =>
       checkTime(article.pubDate, filters.time)
     );
 
-    return { filteredArticles: finalArticles, timeCounts: counts };
+    return { filteredArticles: finalArticles, timeCounts: counts, categoryCounts };
   }, [articles, filters]);
 
   return (
@@ -109,6 +122,7 @@ const App = () => {
         setFilters={setFilters}
         totalCount={filteredArticles.length}
         timeCounts={timeCounts}
+        categoryCounts={categoryCounts}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

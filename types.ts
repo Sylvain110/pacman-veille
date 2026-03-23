@@ -35,7 +35,6 @@ export interface FilterState {
   sources: string[];
   categories: Category[];
   searchQuery: string;
-  viewMode: 'press' | 'realestate';
 }
  
 export type FeedStatus = 'pending' | 'loading' | 'success' | 'error';
