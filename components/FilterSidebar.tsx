@@ -8,11 +8,12 @@ interface FilterSidebarProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   totalCount: number;
   timeCounts: Record<TimeFilter, number>;
+  categoryCounts: Record<Category, number>;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, totalCount, timeCounts, isOpen, onClose }) => {
+const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, totalCount, timeCounts, categoryCounts, isOpen, onClose }) => {
   const [isSourcesExpanded, setIsSourcesExpanded] = useState(false);
   
   const handleTimeChange = (time: TimeFilter) => {
@@ -114,15 +115,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, tota
             </div>
           </div>
 
-          <div className="flex p-1 bg-cyber-900 rounded-lg mb-8 border border-cyber-700">
-            <button
-              className="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-cyber-700 text-white shadow"
-            >
-              <i className="fa-solid fa-newspaper mr-2"></i>
-              Presse
-            </button>
-          </div>
-
           <div className="mb-6">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Période</h2>
             <div className="space-y-2">
@@ -152,20 +144,29 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, tota
           <div className="mb-6">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Catégories</h2>
-              <button 
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  categories: isAllCategoriesSelected ? [] : allCategories
-                }))}
-                className="text-cyber-accent hover:text-white transition-colors p-1"
-                title={isAllCategoriesSelected ? "Tout décocher" : "Tout cocher"}
-              >
-                {isAllCategoriesSelected ? (
-                  <i className="fa-solid fa-xmark"></i> 
-                ) : (
-                  <i className="fa-solid fa-check-double"></i>
-                )}
-              </button>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setFilters(prev => ({
+                    ...prev,
+                    categories: isAllCategoriesSelected ? [] : allCategories
+                  }))}
+                  className="text-cyber-accent hover:text-white transition-colors p-1"
+                  title={isAllCategoriesSelected ? "Tout décocher" : "Tout cocher"}
+                >
+                  {isAllCategoriesSelected ? (
+                    <i className="fa-solid fa-xmark"></i> 
+                  ) : (
+                    <i className="fa-solid fa-check-double"></i>
+                  )}
+                </button>
+                <button 
+                  onClick={() => setFilters(prev => ({ ...prev, categories: [] }))}
+                  className="text-red-400 hover:text-red-300 transition-colors p-1"
+                  title="Désélectionner tout"
+                >
+                  <i className="fa-solid fa-ban"></i>
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               {Object.values(Category).map((cat) => {
@@ -191,12 +192,19 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, tota
                       checked={isSelected}
                       onChange={() => toggleCategory(cat)}
                     />
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 w-full">
                       <div className={`w-4 flex justify-center ${iconClass}`}>
                         <i className={`fa-solid ${CATEGORY_ICONS[cat]} text-xs`}></i>
                       </div>
                       <span className={`text-sm ${textClass}`}>
                         {cat}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ml-auto ${
+                        isSelected 
+                          ? 'bg-cyber-accent text-white' 
+                          : 'bg-gray-800 text-gray-500'
+                      }`}>
+                        {categoryCounts[cat] || 0}
                       </span>
                     </div>
                   </label>
@@ -218,21 +226,30 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, tota
               </button>
 
               {isSourcesExpanded && (
-                <button 
-                  onClick={() => setFilters(prev => {
-                     const all = activeFeeds.map(f => f.name);
-                     const nextSelection = isAllSourcesSelected ? [] : all;
-                     return { ...prev, sources: nextSelection };
-                  })}
-                  className="text-cyber-accent hover:text-white transition-colors p-1 flex-shrink-0 ml-2"
-                  title={isAllSourcesSelected ? "Tout décocher" : "Tout cocher"}
-                >
-                  {isAllSourcesSelected ? (
-                    <i className="fa-solid fa-xmark"></i>
-                  ) : (
-                    <i className="fa-solid fa-check-double"></i>
-                  )}
-                </button>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setFilters(prev => {
+                       const all = activeFeeds.map(f => f.name);
+                       const nextSelection = isAllSourcesSelected ? [] : all;
+                       return { ...prev, sources: nextSelection };
+                    })}
+                    className="text-cyber-accent hover:text-white transition-colors p-1 flex-shrink-0"
+                    title={isAllSourcesSelected ? "Tout décocher" : "Tout cocher"}
+                  >
+                    {isAllSourcesSelected ? (
+                      <i className="fa-solid fa-xmark"></i>
+                    ) : (
+                      <i className="fa-solid fa-check-double"></i>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => setFilters(prev => ({ ...prev, sources: [] }))}
+                    className="text-red-400 hover:text-red-300 transition-colors p-1 flex-shrink-0"
+                    title="Désélectionner tout"
+                  >
+                    <i className="fa-solid fa-ban"></i>
+                  </button>
+                </div>
               )}
             </div>
 
