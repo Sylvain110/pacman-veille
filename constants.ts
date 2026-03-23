@@ -1,103 +1,111 @@
-import { RSSFeed, Category} from './types';
+import { RSSFeed, Category } from './types';
 
 export const PRESS_FEEDS: RSSFeed[] = [
-  { name: "The Hacker News", url: "https://feeds.feedburner.com/TheHackersNews", type: 'press' },
-  { name: "BleepingComputer", url: "https://www.bleepingcomputer.com/feed/", type: 'press' },
-  { name: "LeMagIT Sécurité", url: "https://www.lemagit.fr/rss/ContentSyndication.xml", type: 'press' },
-  { name: "Zataz", url: "https://www.zataz.com/feed/", type: 'press' },
-  { name: "Dyrk", url: "https://dyrk.org/feed/", type: 'press' },
-  { name: "Krebs on Security", url: "https://krebsonsecurity.com/feed/", type: 'press' },
-  { name: "Dark Reading", url: "https://www.darkreading.com/rss.xml", type: 'press' },
-  { name: "01net", url: "https://www.01net.com/feed/", type: 'press', filterCategory: 'Cybersécurité' },
-  { name: "DataSecurityBreach", url: "https://www.datasecuritybreach.fr/feed/", type: 'press' },
+  // --- IA & TECH ---
+  { name: "TechCrunch AI", url: "https://techcrunch.com/tag/artificial-intelligence/feed/", type: 'press' },
+  { name: "VentureBeat AI", url: "https://venturebeat.com/category/ai/feed/", type: 'press' },
+  { name: "The Verge AI", url: "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml", type: 'press' },
+  { name: "MIT Technology Review AI", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed", type: 'press' },
+  { name: "OpenAI Blog", url: "https://openai.com/blog/rss.xml", type: 'press' },
+  { name: "Google AI Blog", url: "https://ai.googleblog.com/feeds/posts/default", type: 'press' },
+
+  // --- BUSINESS / MARCHÉ ---
+  { name: "Les Echos Tech & Médias", url: "https://www.lesechos.fr/tech-medias/rss.xml", type: 'press' },
+  { name: "BFM Business Tech", url: "https://www.bfmtv.com/rss/tech/", type: 'press' },
+  { name: "FrenchWeb", url: "https://www.frenchweb.fr/feed", type: 'press' },
+
+  // --- COMPTABILITÉ / FINANCE ---
+  { name: "Compta Online", url: "https://www.compta-online.com/rss", type: 'press' },
+  { name: "Le Monde Informatique (ERP/Finance)", url: "https://www.lemondeinformatique.fr/flux-rss/thematique/erp-finance/rss.xml", type: 'press' },
+
+  // --- FACTURATION ÉLECTRONIQUE ---
+  { name: "DGFIP - Actualités", url: "https://www.impots.gouv.fr/rss/actualites.xml", type: 'press' },
+  { name: "Service Public Pro", url: "https://www.service-public.fr/rss/professionnels.xml", type: 'press' },
+
+  // --- IMMOBILIER / LMNP ---
+  { name: "Boursorama Immobilier", url: "https://www.boursorama.com/immobilier/rss/", type: 'press' },
+  { name: "SeLoger Invest", url: "https://edito.seloger.com/rss/investissement.xml", type: 'press' },
 ];
 
-export const ANSSI_FEEDS: RSSFeed[] = [
-  { name: "Alertes", url: "https://www.cert.ssi.gouv.fr/alerte/feed/", type: 'anssi' },
-  { name: "Menaces & Incidents", url: "https://www.cert.ssi.gouv.fr/cti/feed/", type: 'anssi' },
-  { name: "Avis", url: "https://www.cert.ssi.gouv.fr/avis/feed/", type: 'anssi' },
-  { name: "IOC", url: "https://www.cert.ssi.gouv.fr/ioc/feed/", type: 'anssi' },
-  { name: "Durcissement", url: "https://www.cert.ssi.gouv.fr/dur/feed/", type: 'anssi' },
-  { name: "Actualités", url: "https://www.cert.ssi.gouv.fr/actualite/feed/", type: 'anssi' }
-];
-
-export const ALL_FEEDS = [...PRESS_FEEDS, ...ANSSI_FEEDS];
+export const ALL_FEEDS = [...PRESS_FEEDS];
 
 export const CATEGORY_BADGE_STYLES: Record<Category, string> = {
-  [Category.Ransomware]: 'bg-red-500/10 text-red-400 border-red-500/20',
-  [Category.DataBreach]: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  [Category.Vulnerability]: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-  [Category.Malware]: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  [Category.Phishing]: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  [Category.Espionage]: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
-  [Category.AISec]: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  [Category.General]: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  [Category.AI]: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  [Category.Market]: 'bg-green-500/10 text-green-400 border-green-500/20',
+  [Category.Accounting]: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  [Category.Tools]: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  [Category.LMNP]: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  [Category.EInvoicing]: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  [Category.General]: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
 };
 
 export const CATEGORY_ICONS: Record<Category, string> = {
-  [Category.Ransomware]: 'fa-file-invoice-dollar',
-  [Category.DataBreach]: 'fa-database',
-  [Category.Vulnerability]: 'fa-bug',
-  [Category.Malware]: 'fa-virus',
-  [Category.Phishing]: 'fa-fish-fins',
-  [Category.Espionage]: 'fa-user-secret',
-  [Category.AISec]: 'fa-microchip',
+  [Category.AI]: 'fa-microchip',
+  [Category.Market]: 'fa-chart-line',
+  [Category.Accounting]: 'fa-calculator',
+  [Category.Tools]: 'fa-screwdriver-wrench',
+  [Category.LMNP]: 'fa-building',
+  [Category.EInvoicing]: 'fa-file-invoice',
   [Category.General]: 'fa-rss',
 };
 
 export const CATEGORY_COLORS: Record<Category, string> = {
-  [Category.Ransomware]: 'text-red-400',
-  [Category.DataBreach]: 'text-purple-400',
-  [Category.Vulnerability]: 'text-orange-400',
-  [Category.Malware]: 'text-yellow-400',
-  [Category.Phishing]: 'text-pink-400',
-  [Category.Espionage]: 'text-slate-300',
-  [Category.AISec]: 'text-cyan-400',
-  [Category.General]: 'text-blue-400',
+  [Category.AI]: 'text-cyan-400',
+  [Category.Market]: 'text-green-400',
+  [Category.Accounting]: 'text-purple-400',
+  [Category.Tools]: 'text-yellow-400',
+  [Category.LMNP]: 'text-orange-400',
+  [Category.EInvoicing]: 'text-blue-400',
+  [Category.General]: 'text-slate-300',
 };
 
 export const CATEGORY_CHECKBOX_STYLES: Record<Category, string> = {
-  [Category.Ransomware]: 'bg-red-500 border-red-500',
-  [Category.DataBreach]: 'bg-purple-500 border-purple-500',
-  [Category.Vulnerability]: 'bg-orange-500 border-orange-500',
-  [Category.Malware]: 'bg-yellow-500 border-yellow-500',
-  [Category.Phishing]: 'bg-pink-500 border-pink-500',
-  [Category.Espionage]: 'bg-slate-500 border-slate-500',
-  [Category.AISec]: 'bg-cyan-500 border-cyan-500',
-  [Category.General]: 'bg-blue-500 border-blue-500',
+  [Category.AI]: 'bg-cyan-500 border-cyan-500',
+  [Category.Market]: 'bg-green-500 border-green-500',
+  [Category.Accounting]: 'bg-purple-500 border-purple-500',
+  [Category.Tools]: 'bg-yellow-500 border-yellow-500',
+  [Category.LMNP]: 'bg-orange-500 border-orange-500',
+  [Category.EInvoicing]: 'bg-blue-500 border-blue-500',
+  [Category.General]: 'bg-slate-500 border-slate-500',
 };
 
 export const CATEGORY_KEYWORDS: Record<Category, string[]> = {
-  [Category.Ransomware]: [
-    'ransomware', 'rançongiciel', 'encrypt', 'extortion', 'lockbit', 'clop', 'blackcat', 
-    'play', 'akira', 'rhysida', 'qilin', 'cactus', 'royal', ' ransom', 'pay the ransom'
+  [Category.AI]: [
+    'ai', 'artificial intelligence', 'llm', 'gpt', 'openai', 'gemini', 'anthropic',
+    'mistral', 'deepseek', 'machine learning', 'deep learning', 'neural network',
+    'generative ai', 'agent', 'rag', 'fine-tuning', 'prompt'
   ],
-  [Category.DataBreach]: [
-    'breach', 'leak', 'stolen', 'database', 'dump', 'compromise', 'hacked', 'fuite', 'données',
-    'exposed', 'records', 'credentials', 'password', 'pii', 'gdpr', 'rgpd', 'cnil', 'ticketmaster', 'at&t'
+
+  [Category.Market]: [
+    'startup', 'funding', 'levée de fonds', 'valuation', 'growth', 'market',
+    'trend', 'tendance', 'investment', 'vc', 'venture capital', 'ipo',
+    'acquisition', 'merger', 'business model'
   ],
-  [Category.Vulnerability]: [
-    'cve-', 'vuln', 'patch', 'zero-day', '0-day', 'flaw', 'exploit', 'bug', 'faille', 
-    'critique', 'update', 'rce', 'remote code execution', 'injection', 'xss', 'overflow',
-    'microsoft patch', 'update tuesday', 'kev', 'poc', 'security update', 'correctif'
+
+  [Category.Accounting]: [
+    'comptabilité', 'accounting', 'expert-comptable', 'bilan', 'liasse fiscale',
+    'déclaration', 'tva', 'fiscalité', 'amortissement', 'charges', 'résultat'
   ],
-  [Category.Malware]: [
-    'malware', 'trojan', 'backdoor', 'spyware', 'botnet', 'loader', 'stealer', 'rootkit', 
-    'virus', 'worm', 'payload', 'infected', 'command and control', 'c2', 'rat', 'infostealer',
-    'lumma', 'redline', 'cobalt strike', 'malicious'
+
+  [Category.Tools]: [
+    'pennylane', 'indy', 'tiime', 'quickbooks', 'sage', 'cegid',
+    'outil comptable', 'logiciel comptabilité', 'saas finance',
+    'automatisation comptable', 'gestion financière'
   ],
-  [Category.Phishing]: [
-    'phishing', 'scam', 'hameçonnage', 'social engineering', 'smishing', 'vishing', 'fraud', 
-    'lure', 'campaign', 'impersonat', 'fake', 'arnaque', 'arnaques','escroquerie', 'bec', 'business email compromise'
+
+  [Category.LMNP]: [
+    'lmnp', 'loueur meublé', 'location meublée', 'amortissement immobilier',
+    'régime réel', 'micro bic', 'investissement locatif', 'cashflow',
+    'rentabilité locative', 'ownily', 'jd2m', 'jedeclaremonmeuble'
   ],
-  [Category.Espionage]: [
-    'apt', 'state-sponsored', 'espionage', 'nation-state', 'fbi', 'nsa', 'cisa', 'doj', 'indictment',
-    'russia', 'china', 'north korea', 'iran', 'lazarus', 'fancy bear', 'cozy bear', 'sandworm',
-    'volt typhoon', 'midnight blizzard', 'apt28', 'apt29', 'cyberwar', 'intelligence'
+
+  [Category.EInvoicing]: [
+    'facturation électronique', 'e-invoicing', 'facture électronique',
+    'pdp', 'plateforme de dématérialisation', 'chorus pro',
+    'obligation facture électronique', 'réforme facture',
+    '2026', '2027', 'e-reporting', 'dématérialisation',
+    'portail public de facturation'
   ],
-  [Category.AISec]: [
-    'ai ', 'artificial intelligence', 'llm', 'chatgpt', 'openai', 'deepfake', 'machine learning',
-    'copilot', 'gemini', 'anthropic', 'nvidia', 'gpu', 'quantum', 'crypto', 'blockchain', 'neural network', 'générative'
-  ],
+
   [Category.General]: []
 };

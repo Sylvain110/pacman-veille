@@ -1,23 +1,22 @@
 export enum Category {
-  Ransomware = 'Ransomware',
-  DataBreach = 'Fuite de Données',
-  Vulnerability = 'Vulnérabilité',
-  Malware = 'Malware',
-  Phishing = 'Phishing',
-  Espionage = 'Gouv & APT',
-  AISec = 'IA & Tech',
-  General = 'Général'
+  AI         = 'IA & Tech',
+  Market     = 'Marché',
+  Accounting = 'Comptabilité',
+  Tools      = 'Outils',
+  LMNP       = 'LMNP',
+  EInvoicing = 'Facturation Électronique',
+  General    = 'Général'
 }
-
-export type FeedType = 'press' | 'anssi';
-
+ 
+export type FeedType = 'press';
+ 
 export interface RSSFeed {
   name: string;
   url: string;
   type: FeedType;
   filterCategory?: string;
 }
-
+ 
 export interface Article {
   id: string;
   title: string;
@@ -28,20 +27,18 @@ export interface Article {
   description: string;
   feedType: FeedType;
 }
-
+ 
 export type TimeFilter = 'Today' | '48h' | 'Week' | 'All';
-
+ 
 export interface FilterState {
   time: TimeFilter;
   sources: string[];
-  anssiThemes: string[];
   categories: Category[];
-  viewMode: FeedType;
   searchQuery: string;
 }
-
+ 
 export type FeedStatus = 'pending' | 'loading' | 'success' | 'error';
-
+ 
 export interface FeedProgress {
   feedName: string;
   status: FeedStatus;

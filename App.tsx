@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Article, FilterState, Category, TimeFilter, FeedProgress } from './types';
-import { PRESS_FEEDS, ANSSI_FEEDS } from './constants';
+import { PRESS_FEEDS } from './constants';
 import { fetchAllFeeds } from './utils/feedParser';
 import FilterSidebar from './components/FilterSidebar';
 import ArticleCard from './components/ArticleCard';
@@ -17,9 +17,7 @@ const App = () => {
   const [filters, setFilters] = useState<FilterState>({
     time: '48h',
     sources: PRESS_FEEDS.map(f => f.name),
-    anssiThemes: ANSSI_FEEDS.map(f => f.name),
     categories: Object.values(Category),
-    viewMode: 'press',
     searchQuery: ''
   });
 
@@ -58,19 +56,15 @@ const App = () => {
     const now = new Date();
 
     const contextArticles = articles.filter(article => {
-      if (article.feedType !== filters.viewMode) return false;
-
-      const allowedSources = filters.viewMode === 'press' ? filters.sources : filters.anssiThemes;
-      if (!allowedSources.includes(article.source)) return false;
-
-      if (filters.viewMode === 'press') {
-        if (!filters.categories.includes(article.category)) return false;
-      }
+      if (!filters.sources.includes(article.source)) return false;
+      if (!filters.categories.includes(article.category)) return false;
 
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
-        return article.title.toLowerCase().includes(query) || 
-               article.description.toLowerCase().includes(query);
+        return (
+          article.title.toLowerCase().includes(query) ||
+          article.description.toLowerCase().includes(query)
+        );
       }
 
       return true;
@@ -82,10 +76,10 @@ const App = () => {
 
       switch (filter) {
         case 'Today': return now.toDateString() === articleDate.toDateString();
-        case '48h': return diffHours <= 48;
-        case 'Week': return diffHours <= 24 * 7;
-        case 'All': return true;
-        default: return true;
+        case '48h':   return diffHours <= 48;
+        case 'Week':  return diffHours <= 24 * 7;
+        case 'All':   return true;
+        default:      return true;
       }
     };
 
@@ -95,12 +89,12 @@ const App = () => {
 
     contextArticles.forEach(article => {
       if (checkTime(article.pubDate, 'Today')) counts['Today']++;
-      if (checkTime(article.pubDate, '48h')) counts['48h']++;
-      if (checkTime(article.pubDate, 'Week')) counts['Week']++;
-      if (checkTime(article.pubDate, 'All')) counts['All']++;
+      if (checkTime(article.pubDate, '48h'))   counts['48h']++;
+      if (checkTime(article.pubDate, 'Week'))  counts['Week']++;
+      if (checkTime(article.pubDate, 'All'))   counts['All']++;
     });
 
-    const finalArticles = contextArticles.filter(article => 
+    const finalArticles = contextArticles.filter(article =>
       checkTime(article.pubDate, filters.time)
     );
 
@@ -109,10 +103,10 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex bg-cyber-900 font-sans text-gray-200">
-      
-      <FilterSidebar 
-        filters={filters} 
-        setFilters={setFilters} 
+
+      <FilterSidebar
+        filters={filters}
+        setFilters={setFilters}
         totalCount={filteredArticles.length}
         timeCounts={timeCounts}
         isOpen={isSidebarOpen}
@@ -120,14 +114,17 @@ const App = () => {
       />
 
       <main className="flex-1 h-screen overflow-y-auto relative scroll-smooth">
+
+        {/* Mobile header */}
         <div className="lg:hidden sticky top-0 z-30 bg-cyber-900/95 backdrop-blur border-b border-cyber-700 p-4 flex justify-between items-center shadow-md">
           <h1 className="text-lg font-bold text-white flex items-center gap-2">
             <PinkyIcon className="w-5 h-5 text-[#FFB8FF]" />
-            {filters.viewMode === 'press' ? 'Pacman Veille' : 'Moniteur ANSSI'}
+            Veille Comptabilité & IA
           </h1>
           <div className="w-8"></div>
         </div>
 
+        {/* Loading progress bar */}
         {loading && (
           <div className={`fixed top-0 left-0 right-0 z-50 bg-cyber-800/95 backdrop-blur border-b border-cyber-700 px-4 py-2 transition-opacity duration-300 ${progress ? 'opacity-100' : 'opacity-0'}`}>
             <div className="max-w-7xl mx-auto flex items-center gap-3 h-6">
@@ -140,28 +137,31 @@ const App = () => {
                     style={{ width: progress ? `${(progress.loaded / progress.total) * 100}%` : '0%' }}
                   />
                 </div>
-                <span className="text-sm text-gray-500 flex-shrink-0">{progress ? `${progress.loaded}/${progress.total}` : ''}</span>
+                <span className="text-sm text-gray-500 flex-shrink-0">
+                  {progress ? `${progress.loaded}/${progress.total}` : ''}
+                </span>
               </div>
             </div>
           </div>
         )}
 
         <div className="p-4 lg:p-8 max-w-7xl mx-auto pb-24">
+
+          {/* Desktop header */}
           <div className="mb-8 hidden lg:block">
             <h1 className="text-3xl font-bold text-white mb-2">
-              {filters.viewMode === 'press' ? 'Actualités Cyber' : 'Moniteur ANSSI'}
+              Veille Comptabilité, IA & LMNP
             </h1>
             <p className="text-gray-400 mb-4">
-              {filters.viewMode === 'press' 
-                ? 'Actualités et alertes de sécurité agrégées en temps réel.' 
-                : 'Alertes et rapports officiels de l\'Agence Nationale de la Sécurité des Systèmes d\'Information.'}
+              Actualités agrégées en temps réel : intelligence artificielle, comptabilité,
+              facturation électronique, marchés et investissement locatif meublé.
             </p>
-            
+
             {filters.searchQuery && (
               <div className="inline-flex items-center gap-2 bg-cyber-accent/10 text-cyber-accent px-3 py-1 rounded-lg border border-cyber-accent/30">
                 <i className="fa-solid fa-magnifying-glass text-sm"></i>
                 <span className="text-sm font-medium">Résultats pour "{filters.searchQuery}"</span>
-                <button 
+                <button
                   onClick={() => setFilters(prev => ({ ...prev, searchQuery: '' }))}
                   className="ml-1 hover:text-white"
                 >
@@ -171,6 +171,7 @@ const App = () => {
             )}
           </div>
 
+          {/* Skeleton while initial load */}
           {loading && articles.length === 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {Array.from({ length: 9 }).map((_, i) => (
@@ -179,6 +180,7 @@ const App = () => {
             </div>
           )}
 
+          {/* Error state */}
           {!loading && error && (
             <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-xl text-center">
               <i className="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i>
@@ -186,39 +188,47 @@ const App = () => {
             </div>
           )}
 
+          {/* Empty state */}
           {!loading && !error && filteredArticles.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 text-center">
-               <div className="w-16 h-16 bg-cyber-800 rounded-full flex items-center justify-center mb-4">
-                 <i className="fa-solid fa-filter text-gray-500 text-2xl"></i>
-               </div>
-               <h3 className="text-xl font-semibold text-white mb-2">Aucun élément trouvé</h3>
-               <p className="text-gray-400">
-                 {filters.searchQuery 
-                   ? `Aucun résultat pour "${filters.searchQuery}" dans cette période.`
-                   : 'Essayez d\'ajuster le filtre temporel ou d\'activer plus de sources.'}
-               </p>
+              <div className="w-16 h-16 bg-cyber-800 rounded-full flex items-center justify-center mb-4">
+                <i className="fa-solid fa-filter text-gray-500 text-2xl"></i>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Aucun élément trouvé</h3>
+              <p className="text-gray-400">
+                {filters.searchQuery
+                  ? `Aucun résultat pour "${filters.searchQuery}" dans cette période.`
+                  : 'Essayez d\'ajuster le filtre temporel ou d\'activer plus de sources.'}
+              </p>
             </div>
           )}
 
+          {/* Article grid */}
           {!error && filteredArticles.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredArticles.map((article) => (
                 <ArticleCard key={`${article.source}-${article.id}`} article={article} />
               ))}
-              {loading && progress && Array.from({ length: Math.min(6, progress.total - progress.loaded) }).map((_, i) => (
-                <ArticleCardSkeleton key={`skeleton-loading-${i}`} />
-              ))}
+              {loading && progress &&
+                Array.from({ length: Math.min(6, progress.total - progress.loaded) }).map((_, i) => (
+                  <ArticleCardSkeleton key={`skeleton-loading-${i}`} />
+                ))
+              }
             </div>
           )}
 
         </div>
 
+        {/* Mobile FAB */}
         <button
           onClick={() => setIsSidebarOpen(true)}
           className="lg:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-cyber-accent text-white rounded-full shadow-lg shadow-cyber-accent/30 flex items-center justify-center text-xl hover:bg-sky-400 transition-transform active:scale-95"
-          aria-label="Open Filters"
+          aria-label="Ouvrir les filtres"
         >
-          {filters.searchQuery ? <i className="fa-solid fa-magnifying-glass"></i> : <i className="fa-solid fa-sliders"></i>}
+          {filters.searchQuery
+            ? <i className="fa-solid fa-magnifying-glass"></i>
+            : <i className="fa-solid fa-sliders"></i>
+          }
         </button>
 
       </main>
