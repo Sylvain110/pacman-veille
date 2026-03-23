@@ -23,7 +23,7 @@ const scoreKeyword = (keyword: string, title: string, desc: string): number => {
 const determineCategory = (title: string, description: string): Category => {
   const categoriesToCheck: Category[] = [
     Category.EInvoicing,
-    Category.LMNP,
+    Category.IMMOBILIER,
     Category.Tools,
     Category.Accounting,
     Category.Market,
